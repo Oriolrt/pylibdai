@@ -22,30 +22,30 @@ factors.append((member, prob))
 
 # do inference
 props = {'inference': 'SUMPROD', 'updates': 'SEQMAX', 'tol': '1e-6', 'maxiter': '100', 'logdomain': '0'}
-logz, q, maxdiff, qv, qf, qmap = dai.dai(factors, 'BP', props)
+logz, q, maxdiff, qv, qf, qmap = dai.dai(factors, 'BP', props, order='F')
 
 # print the output
-print 'LogZ = %.4f' % logz
-print
+print('LogZ = %.4f' % logz)
+print()
 
-print 'All beliefs:'
+print('All beliefs:')
 for member, prob in q:
-    print 'Member: %s\nProb: %s' % (member, prob)
-print
+    print('Member: %s\nProb: %s' % (member, prob))
+print()
 
-print 'MaxDiff = %.4f' % maxdiff
-print
+print('MaxDiff = %.4f' % maxdiff)
+print()
 
-print 'Variable beliefs:'
+print('Variable beliefs:')
 for member, prob in qv:
-    print 'Member: %s\nProb: %s' % (member, prob)
-print
+    print('Member: %s\nProb: %s' % (member, prob))
+print()
 
-print 'Factor beliefs:'
+print('Factor beliefs:')
 for member, prob in qf:
-    print 'Member: %s\nProb: %s' % (member, prob)
-print
+    print('Member: %s\nProb: %s' % (member, prob))
+print()
 
-print 'Map state = %s' % qmap
-print
+print('Map state = %s' % qmap)
+print()
 

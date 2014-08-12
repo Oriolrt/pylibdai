@@ -113,10 +113,10 @@ def dai(factors, method = 'BP', props = {}, with_extra_beliefs=True, with_map_st
     with_map_state: return the joint map state
     """
     # Prepare input
-    cdef vector[Factor] cfactors = factors_py2cpp(factors, order)
+    cdef vector[Factor] cfactors = factors_py2cpp(factors, order.encode('utf-8'))
     
     # Construct the factor graph and run inference
-    cdef string cnameopts = '%s[%s]' % (method, ','.join(['%s=%s' %(key, props[key]) for key in props.keys()]))
+    cdef string cnameopts = ('%s[%s]' % (method, ','.join(['%s=%s' %(key, props[key]) for key in props.keys()]))).encode('utf-8')
     cdef FactorGraph *fg = new FactorGraph(cfactors)
     cdef InfAlg *alg = newInfAlgFromString(cnameopts, fg[0])
     alg.init()
@@ -124,7 +124,7 @@ def dai(factors, method = 'BP', props = {}, with_extra_beliefs=True, with_map_st
     
     # Prepare output
     logz = alg.logZ()
-    q = factors_cpp2py(alg.beliefs(), order)
+    q = factors_cpp2py(alg.beliefs(), order.encode('utf-8'))
     maxdiff = alg.maxDiff()
     res = [logz, q, maxdiff]
     
@@ -134,12 +134,12 @@ def dai(factors, method = 'BP', props = {}, with_extra_beliefs=True, with_map_st
         cqv.reserve(fg.nrVars())
         for i in np.arange(fg.nrVars()):
             cqv.push_back(alg.belief(fg.var(i)))
-        qv = factors_cpp2py(cqv, order)
+        qv = factors_cpp2py(cqv, order.encode('utf-8'))
         
         cqf.reserve(fg.nrFactors())
         for i in np.arange(fg.nrFactors()):
             cqf.push_back(alg.belief(fg.factor(i).vars()))
-        qf = factors_cpp2py(cqf, order)
+        qf = factors_cpp2py(cqf, order.encode('utf-8'))
         
         res.append(qv)
         res.append(qf)
