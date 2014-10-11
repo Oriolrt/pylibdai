@@ -39,6 +39,7 @@ cdef extern from 'dai/factorgraph.h' namespace 'dai':
         Factor factor(size_t)
 
 cdef extern from 'dai/daialg.h' namespace 'dai':
+    Factor calcMarginal(InfAlg obj, VarSet vs, bint reInit)
     cdef cppclass InfAlg:
         void init() except +
         void run() except +
@@ -102,11 +103,12 @@ cdef list factors_cpp2py(vector[Factor] cfactors, string order='F'):
     return factors
 
 
-def dai(factors, method = 'BP', props = {}, with_extra_beliefs=True, with_map_state=True, order='F'):
+def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=True, with_map_state=True, order='F'):
     """
-    dai(factors, method = 'BP', props = {}, with_extra_beliefs=True, with_map_state=True)
+    dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=True, with_map_state=True)
     
     factors: a list of (member, prob) tuples, both numpy arrays
+    varsets: a list of additional variable sets to compute marginals for
     method: a string containing the name of a supported algorithm
     props: algorithm parameters specified as a dictionary of string to string
     with_extra_beliefs: return separately the variable and factor beliefs
@@ -130,6 +132,19 @@ def dai(factors, method = 'BP', props = {}, with_extra_beliefs=True, with_map_st
     
     cdef vector[Factor] cqv
     cdef vector[Factor] cqf
+    cdef vector[Factor] cmargs
+    cdef VarSet cvarset
+    if varsets is not None:
+        cmargs.reserve(len(varsets))
+        for i, member in enumerate(varsets):
+            cvarset = VarSet()
+            for v in member:
+                cvarset.insert(fg.var(v))
+            cmargs.push_back(calcMarginal(alg[0], cvarset, 0))
+        margs = factors_cpp2py(cmargs, order.encode('utf-8'))
+        
+        res.append(margs)
+    
     if with_extra_beliefs:
         cqv.reserve(fg.nrVars())
         for i in np.arange(fg.nrVars()):
