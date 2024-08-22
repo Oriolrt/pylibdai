@@ -27,7 +27,7 @@ libdaidir = 'libdai'
 
 files = ["dai.pyx"]
 
-setup(
+setup(name="dai",
     version='1.0',
     install_requires=['numpy'],
     cmdclass = {'build_ext': build_ext},
