@@ -5,8 +5,6 @@ import os
 import numpy
 import subprocess
 
-gmp_inc = [ x[2:].decode() for x in subprocess.check_output('pkg-config --cflags  gmp',shell=True).splitlines() ]
-gmp_lib = [ x[2:].decode().split()[0] for x in subprocess.check_output('pkg-config --libs  gmp',shell=True).splitlines() ]
 
 
 system = subprocess.check_output('uname').splitlines()[0].decode()
@@ -15,13 +13,17 @@ if system == 'Linux':
   libdai = 'dai-'+system
   boost_inc = [ x[:x.decode().find("blank.hpp")].decode() for x in subprocess.check_output("find /usr -name  blank.hpp", shell=True).splitlines()]
   boost_lib = [ x[:x.decode().find("libboost_unit_test_framework.a")].decode() for x in subprocess.check_output("find /usr -name  libboost_unit_test_framework.a", shell=True).splitlines()]
-
+  gmp_inc = []
+  gmp_lib = []
 
 if system == 'Darwin':
   libdai = 'dai-'+system
   boost_path = '/opt/local/libexec/boost/1.81/include'
   boost_inc = boost_path[:boost_path.find('include')] +'include/' 
   boost_lib = boost_path + '/lib'
+  gmp_inc = [ x[2:].decode() for x in subprocess.check_output('pkg-config --cflags  gmp',shell=True).splitlines() ]
+  gmp_lib = [ x[2:].decode().split()[0] for x in subprocess.check_output('pkg-config --libs  gmp',shell=True).splitlines() ]
+
 
 libdaidir = 'libdai'
 
