@@ -93,7 +93,7 @@ cdef list factors_cpp2py(vector[Factor] cfactors, string order='F'):
             member[j] = var.label()
             states[j] = var.states()
         
-        prob = np.empty([states.prod()], dtype=np.float32)
+        prob = np.empty([states.prod()], dtype=float)
         for j in np.arange(prob.size):
             prob[j] = cfactors[i][j]
         
