@@ -103,7 +103,7 @@ cdef list factors_cpp2py(vector[Factor] cfactors, string order='F'):
     return factors
 
 
-def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=True, with_map_state=True, order='F'):
+def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=True, with_map_state=True, order='F',with_logz=True):
     """
     dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=True, with_map_state=True)
     
@@ -125,9 +125,9 @@ def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=T
     alg.run()
     
     # Prepare output
-    try:
+    if with_logz:
         logz = alg.logZ()
-    except:
+    else:
         logz = None
     q = factors_cpp2py(alg.beliefs(), order.encode('utf-8'))
     maxdiff = alg.maxDiff()

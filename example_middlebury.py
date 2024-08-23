@@ -31,17 +31,17 @@ def energy(x, y, pairwise):
     n_states = pairwise.shape[0]
     ## unary features:
     gx, gy = np.ogrid[:x.shape[0], :x.shape[1]]
-    selected_unaries = x[gx, gy, y]
-    unaries_acc = np.sum(x[gx, gy, y])
-    unaries_acc = np.bincount(y.ravel(), selected_unaries.ravel(),
+    selected_unaries = x[gx, gy, y.astype(int)]
+    unaries_acc = np.sum(x[gx, gy, y.astype(int)])
+    unaries_acc = np.bincount(y.astype(int).ravel(), selected_unaries.ravel(),
                               minlength=n_states)
 
     ##accumulated pairwise
     #make one hot encoding
     labels = np.zeros((y.shape[0], y.shape[1], n_states),
-                      dtype=np.int)
+                      dtype=np.int32)
     gx, gy = np.ogrid[:y.shape[0], :y.shape[1]]
-    labels[gx, gy, y] = 1
+    labels[gx, gy, y.astype(int)] = 1
     # vertical edges
     vert = np.dot(labels[1:, :, :].reshape(-1, n_states).T,
                   labels[:-1, :, :].reshape(-1, n_states))
@@ -81,36 +81,43 @@ def example():
     #pairwize_factors
     pairwise_factors = [(m, pairwise_exp) for m in edges]
 
-    props = {'inference': 'SUMPROD', 'updates': 'SEQMAX', 'tol': '1e-6', 'maxiter': '100', 'logdomain': '0'}
+    props = {'inference': 'MAXPROD', 'updates': 'SEQRND', 'tol': '1e-6', 'maxiter': '10', 'logdomain': '0','damping':0.1}
     start = time()
     #varsets = [[0], [0, 1]]
-    logz, q, maxdiff, margs, qv, qf, qmap = dai.dai(unary_factors + pairwise_factors, [],  'BP', props, order='F')
+    logz, q, maxdiff, margs, qv, qf, max_product = dai.dai(unary_factors + pairwise_factors, [],  'BP', props, order='F')
     #max_product = mrf(np.exp(-unaries.reshape(-1, n_disps)),
     #                  edges, pairwise_exp, alg='maxprod')
     time_maxprod = time() - start
-    #energy_max_prod = energy(unaries, max_product.reshape(newshape), -pairwise)
+    energy_max_prod = energy(unaries, max_product.reshape(newshape), -pairwise)
+
+
+    props = {'inference': 'SUMPROD', 'updates': 'SEQRND', 'tol': '1e-2', 'maxiter': '100', 'logdomain': '0'}
     start = time()
-    logz, q, maxdiff, margs, qv, qf, qmap = dai.dai(unary_factors + pairwise_factors, [], 'TRWBP', props, order='F')
+    logz, q, maxdiff,  qv , qf, trw = dai.dai(unary_factors + pairwise_factors, method= 'TRWBP', props= props, order='F')
     #trw = mrf(np.exp(-unaries.reshape(-1, n_disps)),
     #          edges, pairwise_exp, alg='trw')
     time_trw = time() - start
-    #energy_trw = energy(unaries, trw, -pairwise)
+    energy_trw = energy(unaries, trw.reshape(newshape), -pairwise)
 
-    #start = time()
-    #logz, q, maxdiff, margs, qv, qf, qmap = dai.dai(unary_factors + pairwise_factors, [], 'MF',{**props, 'updates':'NAIVE'} , order='F')
+    props = {'inference': 'SUMPROD', 'updates': 'NAIVE', 'tol': '1e-2', 'maxiter': '100', 'logdomain': '0'}
+    start = time()
+    logz, q, maxdiff,  mf = dai.dai(unary_factors + pairwise_factors, method='MF',props=props , with_extra_beliefs=False, with_map_state=True,order='F')
 
     #logz, q, maxdiff, margs, qv, qf, qmap = dai.dai(unary_factors + pairwise_factors, [], 'TREEEP', {**props,'type':'ORG','tol':1e-4}, order='F')
     #treeep = mrf(np.exp(-unaries.reshape(-1, n_disps)),
     #             edges, pairwise, alg='treeep')
-    #time_treeep = time() - start
-    #energy_treeep = energy(unaries, treeep.reshape(newshape), -pairwise)
+    time_mf = time() - start
+    if len(mf) >0:
+        energy_mf= energy(unaries, mf.reshape(newshape), -pairwise)
+    else:
+        energy_mf = -1
 
     start = time()
-    _, q, maxdiff, margs, qv, qf, qmap = dai.dai(unary_factors + pairwise_factors, [], 'GIBBS', {**props, 'maxiter':100, 'burnin':0,'verbose':1 }, order='F')
+    logz, q, maxdiff, gibbs = dai.dai(unary_factors + pairwise_factors, method='GIBBS', props={**props, 'maxiter':100, 'burnin':0,'verbose':1 },with_extra_beliefs=False, order='F',with_logz=False)
     #gibbs = mrf(np.exp(-unaries.reshape(-1, n_disps)),
     #            edges, pairwise_exp, alg='gibbs')
     time_gibbs = time() - start
-    #energy_gibbs = energy(unaries, gibbs.reshape(newshape), -pairwise)
+    energy_gibbs = energy(unaries, gibbs.reshape(newshape), -pairwise)
 
     fix, axes = plt.subplots(3, 3, figsize=(16, 8))
     energy_argmax = energy(unaries, np.argmin(unaries, axis=2), -pairwise)
@@ -121,15 +128,15 @@ def example():
     axes[0, 1].imshow(img2)
     axes[0, 2].set_title("unaries only e=%f" % (energy_argmax))
     axes[0, 2].matshow(np.argmin(unaries, axis=2), vmin=0, vmax=8)
-    axes[1, 0].set_title("treeep %.2fs, e=%f" % (time_treeep, energy_treeep))
+    axes[1, 0].set_title("mean field %.2fs, e=%f" % (time_mf, energy_mf))
     axes[1, 0].matshow(treeep.reshape(newshape), vmin=0, vmax=8)
     axes[1, 2].set_title("max-product %.2fs, e=%f"
                          % (time_maxprod, energy_max_prod))
     axes[1, 2].matshow(max_product.reshape(newshape), vmin=0, vmax=8)
     axes[2, 0].set_title("trw %.2fs, e=%f" % (time_trw, energy_trw))
     axes[2, 0].matshow(trw.reshape(newshape), vmin=0, vmax=8)
-    axes[2, 2].set_title("gibbs %.2fs, e=%f" % (time_gibbs, energy_gibbs))
-    axes[2, 2].matshow(gibbs.reshape(newshape), vmin=0, vmax=8)
+    #axes[2, 2].set_title("gibbs %.2fs, e=%f" % (time_gibbs, energy_gibbs))
+    #axes[2, 2].matshow(gibbs.reshape(newshape), vmin=0, vmax=8)
     for ax in axes.ravel():
         ax.set_xticks(())
         ax.set_yticks(())
