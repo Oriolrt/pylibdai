@@ -26,7 +26,7 @@ if system == 'Linux':
   libdai = 'dai-'+system
   boost_inc = [ x[:x.decode().find("blank.hpp")].decode() for x in subprocess.check_output("find /usr -name  blank.hpp", shell=True).splitlines()]
   boost_inc = boost_inc if len(boost_inc) > 1 else boost_inc[0]
-  boost_lib = [ x[:x.decode().find("libboost_unit_test_framework.a")].decode() for x in subprocess.check_output("find /usr -name  libboost_unit_test_framework.a", shell=True).splitlines()]
+  boost_lib = [ x[:x.decode().find("libboost_unit_test_framework.a")].decode() for x in subprocess.check_output("find /usr -name  libboost_program_options.so", shell=True).splitlines()]
   boost_lib = boost_lib if len(boost_lib) > 1 else boost_lib[0]
   gmp_inc = []
   gmp_lib = []
