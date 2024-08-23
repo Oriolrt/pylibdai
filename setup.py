@@ -4,6 +4,7 @@ from Cython.Distutils import build_ext
 import os
 import numpy
 import subprocess
+import zipfile
 
 NAME = "dai"
 VERSION = "1.0"
@@ -21,12 +22,17 @@ PACKAGES = [SRC_DIR]
 
 
 system = subprocess.check_output('uname').splitlines()[0].decode()
+libdaidir = 'libdai'
 
 if system == 'Linux':
   libdai = 'dai-'+system
+
+  with zipfile.ZipFile(libdaidir + 'lib/' + libdai + '.zip', 'r') as zip_ref:
+    zip_ref.extractall(libdaidir + 'lib/')
+  lib_boost_searched = "libboost_program_options.so"
   boost_inc = [ x[:x.decode().find("blank.hpp")].decode() for x in subprocess.check_output("find /usr -name  blank.hpp", shell=True).splitlines()]
   boost_inc = boost_inc if len(boost_inc) > 1 else boost_inc[0]
-  boost_lib = [ x[:x.decode().find("libboost_unit_test_framework.a")].decode() for x in subprocess.check_output("find /usr -name  libboost_program_options.so", shell=True).splitlines()]
+  boost_lib = [ x[:x.decode().find(lib_boost_searched)].decode() for x in subprocess.check_output("find /usr -name  "+lib_boost_searched, shell=True).splitlines()]
   boost_lib = boost_lib if len(boost_lib) > 1 else boost_lib[0]
   gmp_inc = []
   gmp_lib = []
@@ -40,7 +46,7 @@ if system == 'Darwin':
   gmp_lib = [ x[2:].decode().split()[0] for x in subprocess.check_output('pkg-config --libs  gmp',shell=True).splitlines() ]
 
 
-libdaidir = 'libdai'
+
 
 files = ["dai.pyx"]
 
