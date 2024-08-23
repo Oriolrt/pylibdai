@@ -27,8 +27,8 @@ libdaidir = 'libdai'
 if system == 'Linux':
   libdai = 'dai-'+system
 
-  with zipfile.ZipFile(libdaidir + 'lib/' + libdai + '.zip', 'r') as zip_ref:
-    zip_ref.extractall(libdaidir + 'lib/')
+  with zipfile.ZipFile(libdaidir + '/lib/lib' + libdai + '.zip', 'r') as zip_ref:
+    zip_ref.extractall(libdaidir + '/lib/')
   lib_boost_searched = "libboost_program_options.so"
   boost_inc = [ x[:x.decode().find("blank.hpp")].decode() for x in subprocess.check_output("find /usr -name  blank.hpp", shell=True).splitlines()]
   boost_inc = boost_inc if len(boost_inc) > 1 else boost_inc[0]
