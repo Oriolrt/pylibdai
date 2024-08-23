@@ -5,14 +5,27 @@ import os
 import numpy
 import subprocess
 
+NAME = "dai"
+VERSION = "1.0"
+DESCR = "Wrapper for Python to use libDAI"
+URL = "https://github.com/Oriolrt/pylibdai"
+REQUIRES = ['numpy', 'cython']
+
+AUTHOR = "Oriol Ramos Terrades"
+EMAIL = "oriolrt@cvc.uab.cat"
+
+LICENSE = "BSD 2-clause"
+
+SRC_DIR = "libdai"
+PACKAGES = [SRC_DIR]
 
 
 system = subprocess.check_output('uname').splitlines()[0].decode()
 
 if system == 'Linux':
   libdai = 'dai-'+system
-  boost_inc = [ x[:x.decode().find("blank.hpp")].decode() for x in subprocess.check_output("find /usr -name  blank.hpp", shell=True).splitlines()]
-  boost_lib = [ x[:x.decode().find("libboost_unit_test_framework.a")].decode() for x in subprocess.check_output("find /usr -name  libboost_unit_test_framework.a", shell=True).splitlines()]
+  boost_inc = '' #'[ x[:x.decode().find("blank.hpp")].decode() for x in subprocess.check_output("find /usr -name  blank.hpp", shell=True).splitlines()]
+  boost_lib = '' #'[ x[:x.decode().find("libboost_unit_test_framework.a")].decode() for x in subprocess.check_output("find /usr -name  libboost_unit_test_framework.a", shell=True).splitlines()]
   gmp_inc = []
   gmp_lib = []
 
@@ -31,7 +44,7 @@ files = ["dai.pyx"]
 
 setup(name="dai",
     version='1.0',
-    install_requires=['numpy'],
+    install_requires=['numpy','cython'],
     cmdclass = {'build_ext': build_ext},
     ext_modules = [Extension('dai', files, language = 'c++',
         include_dirs = [os.path.join(libdaidir, 'include')]+[numpy.get_include()] + gmp_inc + [boost_inc],
