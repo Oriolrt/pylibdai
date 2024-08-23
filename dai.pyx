@@ -125,7 +125,10 @@ def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=T
     alg.run()
     
     # Prepare output
-    logz = alg.logZ()
+    try:
+        logz = alg.logZ()
+    except:
+        logz = None
     q = factors_cpp2py(alg.beliefs(), order.encode('utf-8'))
     maxdiff = alg.maxDiff()
     res = [logz, q, maxdiff]

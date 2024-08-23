@@ -10,7 +10,7 @@ NAME = "dai"
 VERSION = "1.0"
 DESCR = "Wrapper for Python to use libDAI"
 URL = "https://github.com/Oriolrt/pylibdai"
-REQUIRES = ['numpy', 'cython']
+REQUIRES = ['numpy','cython','Image','matplotlib','IPython']
 
 AUTHOR = "Oriol Ramos Terrades"
 EMAIL = "oriolrt@cvc.uab.cat"
@@ -50,11 +50,16 @@ if system == 'Darwin':
 
 files = ["dai.pyx"]
 
-setup(name="dai",
-    version='1.0',
-    install_requires=['numpy','cython'],
+setup(name=NAME,
+    version=VERSION,
+    description=DESCR,
+    requires=REQUIRES,
+    author_email=EMAIL,
+    author=AUTHOR,
+    url=URL,
+    license=LICENSE,
     cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension('dai', files, language = 'c++',
+    ext_modules = [Extension(NAME, files, language = 'c++',
         include_dirs = [os.path.join(libdaidir, 'include')]+[numpy.get_include()] + gmp_inc + [boost_inc],
         library_dirs = [os.path.join(libdaidir, 'lib')] + gmp_lib + [boost_lib],
         libraries = [libdai, 'gmp', 'gmpxx'])]
