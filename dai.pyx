@@ -54,7 +54,7 @@ cdef extern from 'dai/alldai.h' namespace 'dai':
     InfAlg* newInfAlgFromString(string nameopts, FactorGraph fg) except +
 
 
-cdef vector[Factor] factors_py2cpp(list factors, string order='F'):
+cdef vector[Factor] factors_py2cpp(list factors, string order='C'):
     # Convert the list of (member, prob) tuples to a vector of factors
     cdef vector[Factor] cfactors
     cdef vector[Var] variables
@@ -76,7 +76,7 @@ cdef vector[Factor] factors_py2cpp(list factors, string order='F'):
     
     return cfactors
 
-cdef list factors_cpp2py(vector[Factor] cfactors, string order='F'):
+cdef list factors_cpp2py(vector[Factor] cfactors, string order='C'):
     # Convert the vector of factors to a list of (member, prob) tuples
     factors = [(None, None)] * cfactors.size()
     cdef VarSet variables
@@ -103,7 +103,7 @@ cdef list factors_cpp2py(vector[Factor] cfactors, string order='F'):
     return factors
 
 
-def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=True, with_map_state=True, order='F',with_logz=True):
+def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=True, with_map_state=True, order='C',with_logz=True):
     """
     dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=True, with_map_state=True)
     
