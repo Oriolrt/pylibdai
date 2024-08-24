@@ -103,9 +103,9 @@ cdef list factors_cpp2py(vector[Factor] cfactors, string order='C'):
     return factors
 
 
-def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=True, with_map_state=True, order='C',with_logz=True):
+def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=False, with_map_state=True, order='C',with_logz=True):
     """
-    dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=True, with_map_state=True)
+    dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=False, with_map_state=True,with_logz=True)
     
     factors: a list of (member, prob) tuples, both numpy arrays
     varsets: a list of additional variable sets to compute marginals for
@@ -113,6 +113,7 @@ def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=T
     props: algorithm parameters specified as a dictionary of string to string
     with_extra_beliefs: return separately the variable and factor beliefs
     with_map_state: return the joint map state
+    with_logz: return the log of the partition function Z
     """
     # Prepare input
     cdef vector[Factor] cfactors = factors_py2cpp(factors, order.encode('utf-8'))
