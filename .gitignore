@@ -1,6 +1,11 @@
+.DS_Store
 *.so
 *.cpp
 build
 .idea
 *.backup
 *_solved.py
+data/2_1_s.bmp
+data/3_12_s.bmp
+data/7_9_s.bmp
+libdai/lib/libdai-Linux.a
