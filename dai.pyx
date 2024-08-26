@@ -103,7 +103,7 @@ cdef list factors_cpp2py(vector[Factor] cfactors, string order='C'):
     return factors
 
 
-def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=False, with_map_state=True, order='C',with_logz=True):
+def dai(factors, varsets = None, method = 'BP', props = {}, with_beliefs=False, with_map_state=True, order='C',with_logz=False):
     """
     dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=False, with_map_state=True,with_logz=True)
     
@@ -111,7 +111,7 @@ def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=F
     varsets: a list of additional variable sets to compute marginals for
     method: a string containing the name of a supported algorithm
     props: algorithm parameters specified as a dictionary of string to string
-    with_extra_beliefs: return separately the variable and factor beliefs
+    with_beliefs: return separately the variable and factor beliefs
     with_map_state: return the joint map state
     with_logz: return the log of the partition function Z
     """
@@ -126,30 +126,13 @@ def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=F
     alg.run()
     
     # Prepare output
-    if with_logz:
-        logz = alg.logZ()
-    else:
-        logz = None
-    q = factors_cpp2py(alg.beliefs(), order.encode('utf-8'))
-    maxdiff = alg.maxDiff()
-    res = [logz, q, maxdiff]
-    
     cdef vector[Factor] cqv
     cdef vector[Factor] cqf
     cdef vector[Factor] cmargs
     cdef VarSet cvarset
-    if varsets is not None:
-        cmargs.reserve(len(varsets))
-        for i, member in enumerate(varsets):
-            cvarset = VarSet()
-            for v in member:
-                cvarset.insert(fg.var(v))
-            cmargs.push_back(calcMarginal(alg[0], cvarset, 0))
-        margs = factors_cpp2py(cmargs, order.encode('utf-8'))
-        
-        res.append(margs)
-    
-    if with_extra_beliefs:
+
+    res = []
+    if with_beliefs:
         cqv.reserve(fg.nrVars())
         for i in np.arange(fg.nrVars()):
             cqv.push_back(alg.belief(fg.var(i)))
@@ -174,7 +157,28 @@ def dai(factors, varsets = None, method = 'BP', props = {}, with_extra_beliefs=F
             qmap = []
         
         res.append(qmap)
-    
+
+    if with_logz:
+        logz = alg.logZ()
+        res.append( logz )
+
+    #q = factors_cpp2py(alg.beliefs(), order.encode('utf-8'))
+    #res.append( q )
+    if with_logz:
+        maxdiff = alg.maxDiff()
+        res.append( maxdiff )
+
+    if varsets is not None:
+        cmargs.reserve(len(varsets))
+        for i, member in enumerate(varsets):
+            cvarset = VarSet()
+            for v in member:
+                cvarset.insert(fg.var(v))
+            cmargs.push_back(calcMarginal(alg[0], cvarset, 0))
+        margs = factors_cpp2py(cmargs, order.encode('utf-8'))
+
+        res.append(margs)
+
     # Clean up and return the output
     del alg
     del fg
