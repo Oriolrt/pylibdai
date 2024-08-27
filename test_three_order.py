@@ -16,8 +16,12 @@ member = [1]
 prob = np.array([0.6, 0.4])
 factors.append((member, prob))
 
-member = [0, 1]
-prob = np.array([0.1, 0.7, 0.1, 0.1]).reshape(2, 2)
+member = [2]
+prob = np.array([0.1, 0.9])
+factors.append((member, prob))
+
+member = [0, 1, 2]
+prob = np.array([0.1, 0.4, 0.1, 0.1, 0.1, 0.1, 0.05, 0.05]).reshape(2, 2, 2)
 factors.append((member, prob))
 
 # do inference

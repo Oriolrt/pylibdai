@@ -1,5 +1,6 @@
 cython
 numpy
 Image
-matplotlib
+matplotlib>=3.2.0
 IPython
+scikit-learn

@@ -2,12 +2,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
 from time import time
-import dai
-#from daicrf import mrf
-
-#from IPython.core.debugger import PDB
-#tracer = Tracer()
-
+from dai import dai
 
 def stereo_unaries(img1, img2):
     differences = []
@@ -83,29 +78,20 @@ def example():
 
     props = {'inference': 'MAXPROD', 'updates': 'SEQRND', 'tol': '1e-6', 'maxiter': '10', 'logdomain': '0','damping':0.1}
     start = time()
-    #varsets = [[0], [0, 1]]
-    logz, q, maxdiff, margs, qv, qf, max_product = dai.dai(unary_factors + pairwise_factors, [],  'BP', props, order='F')
-    #max_product = mrf(np.exp(-unaries.reshape(-1, n_disps)),
-    #                  edges, pairwise_exp, alg='maxprod')
+    max_product = dai(unary_factors + pairwise_factors,  method='BP', props=props, order='F')
     time_maxprod = time() - start
     energy_max_prod = energy(unaries, max_product.reshape(newshape), -pairwise)
 
 
     props = {'inference': 'SUMPROD', 'updates': 'SEQRND', 'tol': '1e-2', 'maxiter': '100', 'logdomain': '0'}
     start = time()
-    logz, q, maxdiff,  qv , qf, trw = dai.dai(unary_factors + pairwise_factors, method= 'TRWBP', props= props, order='F')
-    #trw = mrf(np.exp(-unaries.reshape(-1, n_disps)),
-    #          edges, pairwise_exp, alg='trw')
+    trw = dai.dai(unary_factors + pairwise_factors, method= 'TRWBP', props= props, order='F')
     time_trw = time() - start
     energy_trw = energy(unaries, trw.reshape(newshape), -pairwise)
 
     props = {'inference': 'SUMPROD', 'updates': 'NAIVE', 'tol': '1e-2', 'maxiter': '100', 'logdomain': '0'}
     start = time()
-    logz, q, maxdiff,  mf = dai.dai(unary_factors + pairwise_factors, method='MF',props=props , with_extra_beliefs=False, with_map_state=True,order='F')
-
-    #logz, q, maxdiff, margs, qv, qf, qmap = dai.dai(unary_factors + pairwise_factors, [], 'TREEEP', {**props,'type':'ORG','tol':1e-4}, order='F')
-    #treeep = mrf(np.exp(-unaries.reshape(-1, n_disps)),
-    #             edges, pairwise, alg='treeep')
+    mf = dai.dai(unary_factors + pairwise_factors, method='MF',props=props , order='F')
     time_mf = time() - start
     if len(mf) >0:
         energy_mf= energy(unaries, mf.reshape(newshape), -pairwise)
@@ -113,9 +99,7 @@ def example():
         energy_mf = -1
 
     start = time()
-    logz, q, maxdiff, gibbs = dai.dai(unary_factors + pairwise_factors, method='GIBBS', props={**props, 'maxiter':100, 'burnin':0,'verbose':1 },with_extra_beliefs=False, order='F',with_logz=False)
-    #gibbs = mrf(np.exp(-unaries.reshape(-1, n_disps)),
-    #            edges, pairwise_exp, alg='gibbs')
+    gibbs = dai.dai(unary_factors + pairwise_factors, method='GIBBS', props={**props, 'maxiter':100, 'burnin':0,'verbose':1 },with_beliefs=False, order='F')
     time_gibbs = time() - start
     energy_gibbs = energy(unaries, gibbs.reshape(newshape), -pairwise)
 
@@ -129,14 +113,14 @@ def example():
     axes[0, 2].set_title("unaries only e=%f" % (energy_argmax))
     axes[0, 2].matshow(np.argmin(unaries, axis=2), vmin=0, vmax=8)
     axes[1, 0].set_title("mean field %.2fs, e=%f" % (time_mf, energy_mf))
-    axes[1, 0].matshow(treeep.reshape(newshape), vmin=0, vmax=8)
+    axes[1, 0].matshow(mf.reshape(newshape), vmin=0, vmax=8)
     axes[1, 2].set_title("max-product %.2fs, e=%f"
                          % (time_maxprod, energy_max_prod))
     axes[1, 2].matshow(max_product.reshape(newshape), vmin=0, vmax=8)
     axes[2, 0].set_title("trw %.2fs, e=%f" % (time_trw, energy_trw))
     axes[2, 0].matshow(trw.reshape(newshape), vmin=0, vmax=8)
-    #axes[2, 2].set_title("gibbs %.2fs, e=%f" % (time_gibbs, energy_gibbs))
-    #axes[2, 2].matshow(gibbs.reshape(newshape), vmin=0, vmax=8)
+    axes[2, 2].set_title("gibbs %.2fs, e=%f" % (time_gibbs, energy_gibbs))
+    axes[2, 2].matshow(gibbs.reshape(newshape), vmin=0, vmax=8)
     for ax in axes.ravel():
         ax.set_xticks(())
         ax.set_yticks(())
