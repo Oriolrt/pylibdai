@@ -1,3 +1,0 @@
-pylibDAI
-A Cython wrapper for libDAI with a similar interface to the MATLAB wrapper
-Similar to libDAI, it is licensed under the BSD 2-clause license.
